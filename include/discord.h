@@ -8,9 +8,11 @@ typedef struct {
   int sockfd;
   SSL_CTX *ctx;
   SSL *ssl;
+  int connected;
 } Botconn;
 
-
+int tls_inint(Botconn *conn);
+int tls_cleanup(Botconn *conn);
 int tls_connect(Botconn *conn, const char *host, const char *port);
 void tls_disconnect(Botconn *conn);
 int tls_write(Botconn *conn, const char *buf, int len);
