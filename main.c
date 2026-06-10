@@ -6,9 +6,14 @@ int main(void){
 
   Botconn conn = {0};
 
+  if(tls_init(&conn)!=0){
+    return 1;
+  }
+
   if(tls_connect(&conn, "discord.com", "443")!=0){
     fprintf(stderr,"connection failed\n");
-    return -1;
+    tls_cleanup(&conn);
+    return 1;
   }
 
 
@@ -30,6 +35,7 @@ int main(void){
   }
 
   tls_disconnect(&conn);
+  tls_cleanup(&conn);
   return 0;
 
 }

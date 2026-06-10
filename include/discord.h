@@ -11,8 +11,8 @@ typedef struct {
   int connected;
 } Botconn;
 
-int tls_inint(Botconn *conn);
-int tls_cleanup(Botconn *conn);
+int tls_init(Botconn *conn);
+void tls_cleanup(Botconn *conn);
 int tls_connect(Botconn *conn, const char *host, const char *port);
 void tls_disconnect(Botconn *conn);
 int tls_write(Botconn *conn, const char *buf, int len);
