@@ -10,7 +10,7 @@
 #define RECV_BUFSIZE "65536"
 
 
-static int ensure-connected(Botconn *conn){
+static int ensure_connected(Botconn *conn){
   if (conn->connected)
     return 0;
 
@@ -37,7 +37,7 @@ static void parse_ratelimit(const char *headers, RateLimit *rl){
 
   p = strstr(headers, "X-RateLimit-Reset-After: ");
   if(p){
-    sscanf(p, "X-RateLimit-Reset-After: %f", &rl-> reser_after);
+    sscanf(p, "X-RateLimit-Reset-After: %f", &rl-> reset_after);
   }
 }
 
@@ -66,6 +66,48 @@ static int parse_repsonse(const char *raw, int raw_len, HttpResponse *resp){
   if(cl){
     sscanf(cl, "Content-Length: %d", &content_length);
   }
+  
+  resp->body_len = (size_t)content_length;
+  resp->body = NULL;
+  
+  if (content_length>0){
+    resp->body = malloc(content_length + 1);
+    if (!resp->body){
+      fprintf(stderr, "[http] malloc failed for response body\n");
+      return -1;
+    }
 
+    memcp(resp->body, body_start, content_length);
+    resp->body[content_length] = '\0';
+  }
+
+  return 0;
+
+}
+
+static void ratelimit_wait(RateLimit *rl){
+  if(rl->remaining == 0){
+    fprintf(stderr, "[http] rate limit hit - sleeping ... %.2fs\n",rl->reset_after);
+    sleep((unsigned int)rl->reset_after + 1);
+  }
+}
+
+
+static int do_request(Botconn *conn, const char *request, int req_len, HttpResponse *resp){
+  if(tls_write(conn, request, req_len)<0){
+    fprintf(stderr, "[http] tls_write failed\n");
+    return -1;
+  }
+
+
+  char chunk[RECV_BUFSIZE];
+  char *buf = NULL;
+  int buf_len = 0;
+  int n;
+
+  while((n = tls_read(conn, chunk, sizeof(chunk) - 1))>0){
+    
+  }
+  
 
 }
