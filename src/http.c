@@ -23,7 +23,7 @@ static void parse_ratelimit(const char *headers, RateLimit *rl){
 
   rl->limit = 5;
   rl->remaining = 1;
-  rl->reser_after = 1.0f;
+  rl->reset_after = 1.0f;
 
   p = strstr(headers, "X-RateLimit-Limit: ");
   if(p){ 
@@ -37,6 +37,35 @@ static void parse_ratelimit(const char *headers, RateLimit *rl){
 
   p = strstr(headers, "X-RateLimit-Reset-After: ");
   if(p){
-    sscanf
+    sscanf(p, "X-RateLimit-Reset-After: %f", &rl-> reser_after);
   }
+}
+
+static int parse_repsonse(const char *raw, int raw_len, HttpResponse *resp){
+  (void)raw_len;
+
+  if (sscanf(raw, "HTTP/1.1 %d", &resp->status) != 1){
+    fprintf(stderr, "[http] malformed response  - no status line\n");
+    return -1;
+  }
+
+  const char *body_start = strstr(raw, "\r\n\r\n");
+
+  if(!body_start){
+    fprintf(stderr, "[https] malformed response - no header boundary\n");
+    return -1;
+  }
+
+  body_start += 4;
+
+  parse_ratelimit(raw, &resp->ratelimit);
+
+  int content_length = 0;
+
+  const char *cl = strstr(raw, "Content-Length: ");
+  if(cl){
+    sscanf(cl, "Content-Length: %d", &content_length);
+  }
+
+
 }
